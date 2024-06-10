@@ -1,0 +1,55 @@
+using System;
+using System.IO;
+
+static void CopyVisioFiles(string sourceDir, string destinationDir)
+{
+    // Get the root directory name
+    string rootDirName = new DirectoryInfo(sourceDir).Name;
+    string newDestinationDir = Path.Combine(destinationDir, rootDirName);
+
+    // Create the destination directory if it doesn't exist
+    if (!Directory.Exists(newDestinationDir))
+    {
+        Directory.CreateDirectory(newDestinationDir);
+    }
+
+    // Process each Visio file in the source directory and its subdirectories
+    foreach (string filePath in Directory.GetFiles(sourceDir, "*.vsd", SearchOption.AllDirectories))
+    {
+        // Get the relative path without the source directory
+        string relativePath = filePath.Substring(sourceDir.Length + 1);
+
+        // Construct the new file name
+        string fileName = Path.GetFileName(filePath);
+        string directoryName = Path.GetDirectoryName(relativePath).Replace(Path.DirectorySeparatorChar, '_');
+
+        // If the directory name is empty, it means the file is in the root of the source directory
+        if (string.IsNullOrEmpty(directoryName))
+        {
+            directoryName = rootDirName;
+        }
+        else
+        {
+            directoryName = rootDirName + "_" + directoryName;
+        }
+
+        // Create the new file name
+        string newFileName = directoryName + "_" + fileName;
+        string destFilePath = Path.Combine(newDestinationDir, newFileName);
+
+        // Copy the file to the new destination path
+        File.Copy(filePath, destFilePath, true);
+
+        // Update progress (optional)
+        Console.WriteLine($"Copied: {filePath} to {destFilePath}");
+    }
+}
+
+// Example usage
+static void Main(string[] args)
+{
+    string sourceDir = @"C:\Source";
+    string destinationDir = @"C:\Destination";
+    
+    CopyVisioFiles(sourceDir, destinationDir);
+}
