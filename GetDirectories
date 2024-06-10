@@ -1,0 +1,66 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+
+class Program
+{
+    static int totalFiles = 0;
+    static int copiedFiles = 0;
+
+    static void Main(string[] args)
+    {
+        string sourceFolder = @"C:\SourceFolder"; // Path to your source folder
+        string destinationFolder = @"C:\DestinationFolder"; // Path to your destination folder
+
+        // Get parent directories only from source folder
+        List<string> parentDirectories = GetParentDirectories(sourceFolder);
+
+        // Copy parent directories and their contents to destination folder
+        foreach (string directoryPath in parentDirectories)
+        {
+            CopyDirectory(directoryPath, sourceFolder, destinationFolder);
+        }
+
+        Console.WriteLine("Copying completed.");
+    }
+
+    static List<string> GetParentDirectories(string dir)
+    {
+        List<string> parentDirectories = new List<string>();
+
+        // Get all directories directly under the source folder
+        string[] subDirectories = Directory.GetDirectories(dir);
+        parentDirectories.AddRange(subDirectories);
+
+        return parentDirectories;
+    }
+
+    static void CopyDirectory(string sourceDir, string sourceRoot, string destinationRoot)
+    {
+        // Calculate destination directory path
+        string relativePath = sourceDir.Substring(sourceRoot.Length);
+        string destDirectory = Path.Combine(destinationRoot, relativePath.TrimStart('\\'));
+
+        // Create the destination directory
+        Directory.CreateDirectory(destDirectory);
+
+        // Process each file in the source directory
+        foreach (string filePath in Directory.GetFiles(sourceDir, "*.vsd"))
+        {
+            // Update progress
+            copiedFiles++;
+            double progress = (double)copiedFiles / totalFiles * 100;
+            Console.WriteLine($"Copying... {progress:F2}%");
+
+            // Copy the file to the destination directory
+            string destFilePath = Path.Combine(destDirectory, Path.GetFileName(filePath));
+            File.Copy(filePath, destFilePath, true);
+        }
+
+        // Process subdirectories recursively
+        foreach (string subDir in Directory.GetDirectories(sourceDir))
+        {
+            CopyDirectory(subDir, sourceRoot, destinationRoot);
+        }
+    }
+}
