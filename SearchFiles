@@ -3,14 +3,35 @@ using System.IO;
 
 class Program
 {
+    static int totalFiles = 0;
+    static int copiedFiles = 0;
+
     static void Main(string[] args)
     {
         string sourceFolder = @"C:\SourceFolder"; // Path to your source folder
         string destinationFolder = @"C:\DestinationFolder"; // Path to your destination folder
 
+        // Count total number of Visio files to be copied
+        totalFiles = CountVisioFiles(sourceFolder);
+
+        Console.WriteLine($"Total Visio files to copy: {totalFiles}");
+
+        // Copy Visio files
         CopyVisioFiles(sourceFolder, destinationFolder);
 
         Console.WriteLine("Copying completed.");
+    }
+
+    static int CountVisioFiles(string dir)
+    {
+        int count = 0;
+
+        foreach (string filePath in Directory.GetFiles(dir, "*.vsd", SearchOption.AllDirectories))
+        {
+            count++;
+        }
+
+        return count;
     }
 
     static void CopyVisioFiles(string sourceDir, string destinationDir)
@@ -21,26 +42,23 @@ class Program
             Directory.CreateDirectory(destinationDir);
         }
 
-        // Process each file in the source directory
-        foreach (string filePath in Directory.GetFiles(sourceDir, "*.vsd", SearchOption.TopDirectoryOnly))
+        // Process each file in the source directory and its subdirectories
+        foreach (string filePath in Directory.GetFiles(sourceDir, "*.vsd", SearchOption.AllDirectories))
         {
-            // Get the relative path of the file
-            string relativePath = Path.GetRelativePath(sourceDir, filePath);
+            // Update progress
+            copiedFiles++;
+            double progress = (double)copiedFiles / totalFiles * 100;
+            Console.WriteLine($"Copying... {progress:F2}%");
 
             // Create the destination directory structure
-            string destDirectory = Path.Combine(destinationDir, Path.GetDirectoryName(relativePath));
+            string relativePath = filePath.Substring(sourceDir.Length + 1); // Get the relative path
+            string destFilePath = Path.Combine(destinationDir, relativePath);
+
+            string destDirectory = Path.GetDirectoryName(destFilePath);
             Directory.CreateDirectory(destDirectory);
 
             // Copy the file to the destination directory
-            string destFilePath = Path.Combine(destDirectory, Path.GetFileName(filePath));
             File.Copy(filePath, destFilePath, true);
-        }
-
-        // Recursively process subdirectories
-        foreach (string subDir in Directory.GetDirectories(sourceDir))
-        {
-            string destSubDir = Path.Combine(destinationDir, Path.GetFileName(subDir));
-            CopyVisioFiles(subDir, destSubDir);
         }
     }
 }
