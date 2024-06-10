@@ -1,0 +1,21 @@
+static void CopyVisioFiles(string sourceDir, string destinationDir)
+{
+    // Process each file in the source directory
+    foreach (string filePath in Directory.GetFiles(sourceDir, "*.vsd", SearchOption.AllDirectories))
+    {
+        // Update progress
+        copiedFiles++;
+        double progress = (double)copiedFiles / totalFiles * 100;
+        Console.WriteLine($"Copying... {progress:F2}%");
+
+        // Create the destination directory structure
+        string relativePath = filePath.Substring(sourceDir.Length); // Get the relative path
+        string destFilePath = Path.Combine(destinationDir, relativePath.TrimStart('\\'));
+
+        string destDirectory = Path.GetDirectoryName(destFilePath);
+        Directory.CreateDirectory(destDirectory);
+
+        // Copy the file to the destination directory
+        File.Copy(filePath, destFilePath, true);
+    }
+}
