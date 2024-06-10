@@ -1,6 +1,16 @@
 static void CopyVisioFiles(string sourceDir, string destinationDir)
 {
-    // Process each file in the source directory
+    // Create the root directory structure in the destination
+    string rootDirName = new DirectoryInfo(sourceDir).Name;
+    string newDestinationDir = Path.Combine(destinationDir, rootDirName);
+
+    // Create destination directory if it doesn't exist
+    if (!Directory.Exists(newDestinationDir))
+    {
+        Directory.CreateDirectory(newDestinationDir);
+    }
+
+    // Process each file in the source directory and its subdirectories
     foreach (string filePath in Directory.GetFiles(sourceDir, "*.vsd", SearchOption.AllDirectories))
     {
         // Update progress
@@ -9,8 +19,8 @@ static void CopyVisioFiles(string sourceDir, string destinationDir)
         Console.WriteLine($"Copying... {progress:F2}%");
 
         // Create the destination directory structure
-        string relativePath = filePath.Substring(sourceDir.Length); // Get the relative path
-        string destFilePath = Path.Combine(destinationDir, relativePath.TrimStart('\\'));
+        string relativePath = filePath.Substring(sourceDir.Length + 1); // Get the relative path
+        string destFilePath = Path.Combine(newDestinationDir, relativePath);
 
         string destDirectory = Path.GetDirectoryName(destFilePath);
         Directory.CreateDirectory(destDirectory);
